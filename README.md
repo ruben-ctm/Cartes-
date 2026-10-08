@@ -38,7 +38,7 @@ Les tests navigateur utilisent Chromium fourni par @sparticuz/chromium sur Linux
 
 ## Déploiement Vercel
 
-- Projet : `tableclub` (`prj_u3fhROGtFjNBjdQnF01hjWyWhH83`).
+- Projet final : `cartes` (`prj_G87N4VVphKV82ZrZ4urMQ3MhkRuM`).
 - Région des fonctions et du stockage : Paris (`cdg1`).
 - Sortie statique : `public/` ; API Node : `api/rooms.js`.
 - Connecter un **store Vercel Blob privé** au projet pour l'environnement ciblé. `BLOB_STORE_ID` permet l'authentification OIDC ; `BLOB_READ_WRITE_TOKEN` est également supporté.
