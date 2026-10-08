@@ -45,7 +45,7 @@ Les tests navigateur utilisent Chromium fourni par @sparticuz/chromium sur Linux
 - Pour utiliser Redis à la place de Blob, connecter une ressource Upstash via Vercel Marketplace et configurer `UPSTASH_REDIS_REST_URL` et `UPSTASH_REDIS_REST_TOKEN`. Redis prend automatiquement la priorité.
 - Ne jamais mettre les secrets dans Git. Copier `.env.example` vers `.env.local` pour documenter les clés ; le serveur de développement n'en charge pas automatiquement les valeurs. Utiliser `node --env-file=.env.local dev.js` ou `vercel env run -- npm run dev` si nécessaire.
 - Les salons expirent après 6 heures. Redis les supprime automatiquement via TTL. Sur Blob, l'expiration interdit la lecture mais les objets doivent être nettoyés séparément pour la rétention et les coûts.
-- La protection SSO du projet est conservée. L’accès public reste à finaliser avec l’utilisateur. Dépôt GitHub : https://github.com/ruben-ctm/Cartes-.
+- Accès public : https://cartes-nu.vercel.app. La protection SSO a été désactivée avec l’accord de l’utilisateur. Dépôt GitHub : https://github.com/ruben-ctm/Cartes-.
 
 ## Architecture et limites connues
 
