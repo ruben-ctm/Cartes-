@@ -1,0 +1,28 @@
+{
+  "name": "tableclub",
+  "version": "1.0.0",
+  "description": "Table de cartes libre multijoueur",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node --test test/engine.test.js",
+    "dev": "node dev.js",
+    "check": "node --check api/rooms.js && node --check public/app.js",
+    "test:browser": "node test/browser.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@upstash/redis": "^1.39.0",
+    "@vercel/blob": "^2.8.1"
+  },
+  "devDependencies": {
+    "@sparticuz/chromium": "^153.0.0",
+    "playwright": "^1.64.0"
+  }
+}
