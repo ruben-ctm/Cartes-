@@ -1,105 +1,172 @@
 const $ = id => document.getElementById(id);
-const sensitive = /token|authorization|cookie|password|secret|session.?id|player.?id|nickname|username|email/i;
-const correctionKeys = new Set(["correctChoices","isCorrect","correctAnswer","correctAnswers","answer"]);
-function scrub(value, depth = 0) {
-  if (depth > 8) return "[profondeur limitée]";
-  if (Array.isArray(value)) return value.slice(0, 100).map(v => scrub(v, depth + 1));
-  if (value && typeof value === "object") {
-    const out = {};
-    for (const [key, item] of Object.entries(value).slice(0, 100)) {
-      if (sensitive.test(key)) out[key] = "[MASQUÉ]";
-      else if (correctionKeys.has(key)) out[key] = "[VALEUR MASQUÉE — champ de correction détecté]";
-      else out[key] = scrub(item, depth + 1);
+const STORE_KEY = "leaklabCaptureState";
+let currentState = null;
+async function send(type) {
+  return chrome.runtime.sendMessage({type});
+}
+function setStatus(message, isError = false) {
+  $("status").textContent = message;
+  $("status").classList.toggle("error", isError);
+}
+function formatTime(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleTimeString("fr-FR", {hour:"2-digit",minute:"2-digit",second:"2-digit",fractionalSecondDigits:3});
+}
+function addCell(row, text, className = "") {
+  const cell = document.createElement("span");
+  cell.textContent = text ?? "";
+  if (className) cell.className = className;
+  row.appendChild(cell);
+}
+function renderEvents(events) {
+  const root = $("events");
+  root.replaceChildren();
+  const frameEvents = events.filter(e => e.kind && e.kind.startsWith("trame"));
+  $("eventCount").textContent = events.length + (events.length > 1 ? " événements" : " événement");
+  if (!events.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty";
+    empty.textContent = "Aucun événement pour le moment.";
+    root.appendChild(empty);
+    return;
+  }
+  for (const event of [...events].reverse().slice(0, 100)) {
+    const row = document.createElement("div");
+    row.className = "event";
+    const top = document.createElement("div");
+    top.className = "event-top";
+    addCell(top, formatTime(event.time), "event-time");
+    addCell(top, event.direction || "système", "direction");
+    row.appendChild(top);
+    const title = document.createElement("div");
+    title.className = "event-title";
+    title.textContent = event.kind || "événement";
+    row.appendChild(title);
+    const details = [];
+    if (event.endpoint) details.push(event.endpoint);
+    if (event.channel) details.push(event.channel);
+    if (event.eventType) details.push("type : " + event.eventType);
+    if (Number.isInteger(event.questionIndex)) details.push("question : " + event.questionIndex);
+    if (event.payloadBytes) details.push(event.payloadBytes + " caractères");
+    if (details.length) {
+      const meta = document.createElement("div");
+      meta.className = "event-meta";
+      meta.textContent = details.join(" · ");
+      row.appendChild(meta);
     }
-    return out;
+    const flags = [];
+    if (event.correctionFieldDetected) flags.push("Champ de correction détecté — valeur masquée");
+    if (event.submissionFieldDetected) flags.push("Champ de soumission détecté — valeur masquée");
+    if (flags.length) {
+      const flag = document.createElement("div");
+      flag.className = "flag";
+      flag.textContent = flags.join(" · ");
+      row.appendChild(flag);
+    }
+    if (event.detectedFieldNames?.length) {
+      const fields = document.createElement("div");
+      fields.className = "event-meta";
+      fields.textContent = "Noms des champs : " + event.detectedFieldNames.join(", ");
+      row.appendChild(fields);
+    }
+    root.appendChild(row);
   }
-  return typeof value === "string" && value.length > 3000 ? value.slice(0, 3000) + "… [tronqué]" : value;
 }
-function esc(value) {
-  return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-function parsePayload(raw) {
-  if (typeof raw !== "string") return null;
-  try { return JSON.parse(raw); } catch {
-    const start = raw.indexOf("{"), end = raw.lastIndexOf("}");
-    if (start >= 0 && end > start) { try { return JSON.parse(raw.slice(start, end + 1)); } catch {} }
+function renderTiming(events) {
+  const incomingCorrections = events.filter(e => e.correctionFieldDetected && e.direction === "entrant").sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));
+  const outgoingSubmissions = events.filter(e => e.submissionFieldDetected && e.direction === "sortant").sort((a,b)=>Date.parse(a.time)-Date.parse(b.time));
+  if (!incomingCorrections.length || !outgoingSubmissions.length) {
+    $("timing").textContent = "Il faut au moins un champ de correction entrant et une soumission sortante pour comparer leur ordre d'arrivée.";
+    return;
   }
-  return null;
+  const correction = incomingCorrections[0];
+  const submission = outgoingSubmissions[0];
+  const delta = Date.parse(correction.time) - Date.parse(submission.time);
+  if (delta < 0) $("timing").textContent = "Un champ de correction a été repéré avant la première soumission sortante détectée (" + Math.abs(delta) + " ms d'écart). Valeur masquée.";
+  else if (delta > 0) $("timing").textContent = "Le premier champ de correction détecté arrive après la première soumission sortante (" + delta + " ms d'écart). Valeur masquée.";
+  else $("timing").textContent = "Les deux événements ont le même horodatage à la précision disponible. Valeur masquée.";
 }
-function flatten(value, out = []) {
-  if (Array.isArray(value)) value.forEach(v => flatten(v, out));
-  else if (value && typeof value === "object") {
-    out.push(value);
-    for (const v of Object.values(value)) flatten(v, out);
-  }
-  return out;
+function render(state) {
+  currentState = state;
+  const events = Array.isArray(state.events) ? state.events : [];
+  const frames = events.filter(e => e.kind && e.kind.startsWith("trame"));
+  const corrections = events.filter(e => e.correctionFieldDetected);
+  const submissions = events.filter(e => e.submissionFieldDetected);
+  $("frameCount").textContent = frames.length;
+  $("socketCount").textContent = state.connectionCount || 0;
+  $("correctionCount").textContent = corrections.length;
+  $("submissionCount").textContent = submissions.length;
+  $("statusPill").textContent = state.status === "capturing" ? "Capture active" : state.status === "starting" ? "Démarrage…" : state.status === "stopped" ? "Arrêtée" : "Inactive";
+  $("statusPill").className = "pill " + (state.status === "capturing" ? "active" : "");
+  $("start").disabled = state.status === "capturing" || state.status === "starting";
+  $("stop").disabled = state.status !== "capturing";
+  $("export").disabled = events.length === 0;
+  $("clear").disabled = state.status === "capturing";
+  if (state.status === "capturing") setStatus("Capture active sur l'onglet Kahoot. Les événements apparaissent ci-dessous.");
+  else if (state.error) setStatus(state.error, true);
+  else if (state.status === "stopped") setStatus("Capture arrêtée. Tu peux exporter le rapport ou effacer le journal.");
+  else setStatus("Ouvre l'onglet Kahoot, puis démarre la capture.");
+  renderTiming(events);
+  renderEvents(events);
 }
-function renderList(id, rows, empty) {
-  $(id).innerHTML = rows.length ? rows.slice(0, 80).map(row => '<div class="item"><pre>' + esc(JSON.stringify(row, null, 2)) + '</pre></div>').join("") : '<p class="muted">' + empty + '</p>';
-}
-$("file").addEventListener("change", async event => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  $("status").textContent = "Lecture et analyse locales…";
+async function refresh() {
   try {
-    const har = JSON.parse(await file.text());
-    const entries = har?.log?.entries;
-    if (!Array.isArray(entries)) throw new Error("Format HAR invalide : log.entries absent.");
-    const sockets = entries.filter(e => /^wss?:/i.test(e.request?.url || "")).map(e => {
-      let endpoint = "URL invalide";
-      try { const u = new URL(e.request.url); endpoint = u.origin + u.pathname; } catch {}
-      return { endpoint, time: e.startedDateTime, status: e.response?.status };
-    });
-    const events = [];
-    for (const entry of entries) {
-      const url = entry.request?.url || "";
-      const candidates = [entry.request?.postData?.text, entry.response?.content?.text].filter(Boolean);
-      for (const raw of candidates) {
-        const parsed = parsePayload(raw);
-        if (!parsed) continue;
-        for (const obj of flatten(parsed)) {
-          const keys = Object.keys(obj);
-          const hasCorrection = keys.some(k => correctionKeys.has(k));
-          const isQuestionOrChoice = keys.some(k => ["choice","questionIndex","type"].includes(k));
-          if (hasCorrection || isQuestionOrChoice) {
-            events.push({
-              time: entry.startedDateTime || null,
-              direction: entry.request?.postData?.text === raw ? "sortant (requête)" : "entrant (réponse)",
-              endpoint: (() => { try { const u = new URL(url); return u.origin + u.pathname; } catch { return "URL non disponible"; } })(),
-              eventType: obj.type || "événement",
-              questionIndex: Number.isInteger(obj.questionIndex) ? obj.questionIndex : undefined,
-              correctionFieldDetected: hasCorrection,
-              correctionValues: hasCorrection ? "[MASQUÉES]" : undefined,
-              choiceSubmissionFieldDetected: keys.includes("choice")
-            });
-          }
-        }
-      }
-    }
-    events.sort((a,b) => String(a.time || "").localeCompare(String(b.time || "")));
-    const submissions = events.filter(e => e.choiceSubmissionFieldDetected);
-    const corrections = events.filter(e => e.correctionFieldDetected);
-    const firstSubmission = submissions[0]?.time;
-    const firstCorrection = corrections[0]?.time;
-    let timing = "Données insuffisantes pour comparer les événements.";
-    if (firstSubmission && firstCorrection) {
-      timing = firstCorrection < firstSubmission ? "Un champ de correction apparaît avant la première soumission détectée." :
-        firstCorrection > firstSubmission ? "Le premier champ de correction apparaît après la première soumission détectée." :
-        "Les deux événements ont le même horodatage à la précision disponible.";
-    }
-    $("stats").innerHTML =
-      '<div class="item">Entrées HAR : <b>' + entries.length + '</b></div>' +
-      '<div class="item">Connexions WebSocket repérées : <b>' + sockets.length + '</b></div>' +
-      '<div class="item">Événements pertinents analysés : <b>' + events.length + '</b></div>' +
-      '<div class="item">Soumissions repérées : <b>' + submissions.length + '</b></div>' +
-      '<div class="item">Champs de correction repérés : <b>' + corrections.length + '</b></div>' +
-      '<div class="item"><b>Comparaison temporelle :</b><br>' + esc(timing) + '</div>';
-    renderList("sockets", sockets, "Aucune connexion WebSocket trouvée dans les entrées HAR.");
-    renderList("messages", events, "Aucun événement pertinent trouvé. Les exports HAR ne contiennent pas toujours les trames WebSocket.");
-    $("summary").hidden = false;
-    $("status").textContent = "Analyse locale terminée. Les valeurs de correction et données sensibles sont masquées.";
+    const result = await send("GET_STATE");
+    if (result?.ok) render(result.state);
+    else setStatus(result?.error || "Impossible de lire l'état.", true);
   } catch (error) {
-    $("status").textContent = "Erreur : " + error.message;
-    $("summary").hidden = true;
+    setStatus(error?.message || String(error), true);
   }
+}
+$("start").addEventListener("click", async () => {
+  $("start").disabled = true;
+  setStatus("Connexion à l'onglet actif…");
+  try {
+    const result = await send("START_CAPTURE");
+    if (!result?.ok) setStatus(result?.error || "Démarrage impossible.", true);
+    if (result?.state) render(result.state);
+    else await refresh();
+  } catch (error) { setStatus(error?.message || String(error), true); }
 });
+$("stop").addEventListener("click", async () => {
+  $("stop").disabled = true;
+  try {
+    const result = await send("STOP_CAPTURE");
+    if (result?.state) render(result.state); else await refresh();
+  } catch (error) { setStatus(error?.message || String(error), true); }
+});
+$("clear").addEventListener("click", async () => {
+  try {
+    const result = await send("CLEAR_LOG");
+    if (result?.ok) render(result.state); else setStatus(result?.error || "Impossible d'effacer le journal.", true);
+  } catch (error) { setStatus(error?.message || String(error), true); }
+});
+$("export").addEventListener("click", () => {
+  if (!currentState) return;
+  const report = {
+    tool: "Leaklab Live WebSocket Audit",
+    exportedAt: new Date().toISOString(),
+    startedAt: currentState.startedAt,
+    stoppedAt: currentState.stoppedAt,
+    connectionCount: currentState.connectionCount,
+    events: (currentState.events || []).map(e => ({
+      time:e.time,direction:e.direction,kind:e.kind,endpoint:e.endpoint,channel:e.channel,
+      eventType:e.eventType,questionIndex:e.questionIndex,
+      correctionFieldDetected:e.correctionFieldDetected,
+      submissionFieldDetected:e.submissionFieldDetected,
+      detectedFieldNames:e.detectedFieldNames,payloadBytes:e.payloadBytes
+    }))
+  };
+  const blob = new Blob([JSON.stringify(report,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "leaklab-audit-" + new Date().toISOString().replace(/[:.]/g,"-") + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "session" && changes[STORE_KEY]?.newValue) render(changes[STORE_KEY].newValue);
+});
+refresh();
