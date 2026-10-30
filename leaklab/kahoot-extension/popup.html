@@ -9,12 +9,12 @@
 <body>
 <main>
   <header><div><h1>Leaklab <span>Live Audit</span></h1><p class="subtitle">Audit local du trafic WebSocket</p></div><div id="statusPill" class="pill">Inactif</div></header>
-  <div class="notice">La capture est limitée à l'onglet Kahoot actif. Les valeurs des réponses et des champs de correction ne sont jamais affichées ni exportées.</div>
+  <div class="notice">Capture manuelle limitée à l'onglet Kahoot actif. Réserve cette extension à la session dédiée au TP autorisée par ton enseignante.</div>
   <div class="controls">
     <button id="start" class="primary">Démarrer la capture</button>
     <button id="stop" disabled>Arrêter</button>
   </div>
-  <div id="status" role="status">Ouvre l'onglet Kahoot, puis démarre la capture.</div>
+  <div id="status" role="status">Ouvre l'onglet de la session de test, puis démarre la capture.</div>
   <section class="stats">
     <div class="stat"><strong id="frameCount">0</strong><span>Trames observées</span></div>
     <div class="stat"><strong id="socketCount">0</strong><span>WebSockets</span></div>
@@ -26,6 +26,10 @@
     <p id="timing">En attente de données.</p>
   </section>
   <section>
+    <div class="section-head"><h2>Valeurs de correction détectées</h2><span id="answerCount">0</span></div>
+    <div id="answers" class="answers"><p class="empty">Aucune valeur de correction détectée pour le moment.</p></div>
+  </section>
+  <section>
     <div class="section-head"><h2>Journal en direct</h2><span id="eventCount">0 événement</span></div>
     <div id="events" class="events"><p class="empty">Aucun événement pour le moment.</p></div>
   </section>
@@ -33,7 +37,7 @@
     <button id="export" disabled>Exporter le rapport JSON</button>
     <button id="clear" class="subtle">Effacer le journal</button>
   </footer>
-  <p class="footnote">Les trames sont analysées localement. Aucun contenu brut, choix sélectionné, réponse ou identifiant de session n'est conservé.</p>
+  <p class="footnote">Les trames sont analysées localement. Le rapport contient les valeurs des champs de correction détectés, mais pas les contenus bruts des trames ni les identifiants de session.</p>
 </main>
 <script src="popup.js"></script>
 </body>
