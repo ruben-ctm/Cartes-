@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leaklab — Audit en direct</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header><div><h1>Leaklab <span>Live WebSocket Audit</span></h1><p class="subtitle">Panneau d'audit persistant</p></div><div id="statusPill" class="pill">Inactif</div></header>
+  <div class="notice">Le panneau reste ouvert pendant que tu utilises les autres onglets et pages. Capture locale limitée à l'onglet Kahoot actif ; le contenu des réponses reste masqué.</div>
+  <div class="controls">
+    <button id="start" class="primary">Démarrer la capture</button>
+    <button id="stop" disabled>Arrêter</button>
+  </div>
+  <div id="status" role="status">Ouvre l'onglet de la session de test, puis démarre la capture.</div>
+  <section class="stats">
+    <div class="stat"><strong id="frameCount">0</strong><span>Trames observées</span></div>
+    <div class="stat"><strong id="socketCount">0</strong><span>WebSockets</span></div>
+    <div class="stat"><strong id="correctionCount">0</strong><span>Champs de correction repérés</span></div>
+    <div class="stat"><strong id="submissionCount">0</strong><span>Soumissions repérées</span></div>
+  </section>
+  <section class="timing">
+    <h2>Analyse temporelle</h2>
+    <p id="timing">En attente de données.</p>
+  </section>
+  <section>
+    <div class="section-head"><h2>Journal en direct</h2><span id="eventCount">0 événement</span></div>
+    <div id="events" class="events"><p class="empty">Aucun événement pour le moment.</p></div>
+  </section>
+  <footer>
+    <button id="export" disabled>Exporter le rapport JSON</button>
+    <button id="clear" class="subtle">Effacer</button>
+  </footer>
+  <p class="footnote">Les événements sont analysés localement. Aucun contenu brut ni valeur de réponse n'est conservé ou exporté.</p>
+</main>
+<script src="sidepanel.js"></script>
+</body>
+</html>
