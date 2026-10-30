@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Leaklab Live WebSocket Audit",
-  "version": "0.2.0",
-  "description": "Audit local et horodaté des trames WebSocket sur une session Kahoot de test.",
+  "version": "0.3.0",
+  "description": "Capture locale des WebSockets et affichage des champs de correction détectés pour un test supervisé.",
   "permissions": [
     "debugger",
     "activeTab",
