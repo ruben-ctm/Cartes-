@@ -49,3 +49,4 @@ code { font: 12px ui-monospace, monospace; word-break: break-all; }
 .frames mark { background: color-mix(in srgb, var(--leak) 28%, transparent); color: inherit; }
 .err { color: var(--leak); }
 @media (max-width: 640px) { main { padding: 10px; } }
+

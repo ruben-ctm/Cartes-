@@ -27,3 +27,11 @@ test('serveur : profil inconnu → 400, sortie du dossier ui/ → refusée', asy
   assert.notEqual((await fetch(`${base}/ui/..%2fpackage.json`)).status, 200);
   assert.equal((await fetch(`${base}/`)).status, 200);
 });
+
+test('API : /api/analyze accepte une session JSONL', async () => {
+  const { toJsonl, recordsFromCapture } = await import('../analyzer/index.js');
+  const { simulate } = await import('../lab/simulator.js');
+  const body = toJsonl(recordsFromCapture(simulate({ profile: 'L2', seed: 6 })));
+  const out = await (await fetch(`${base}/api/analyze`, { method: 'POST', body })).json();
+  assert.equal(out.result.verdict, 'LEAK_BEFORE_ANSWER');
+});

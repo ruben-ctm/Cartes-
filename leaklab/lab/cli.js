@@ -3,19 +3,29 @@
  * Usage :
  *   node lab/cli.js                    synthèse des 5 profils (attendu vs obtenu)
  *   node lab/cli.js --write            idem + écrit lab/fixtures/<profil>.json
- *   node lab/cli.js analyze <fichier>  analyse une capture JSON et affiche le rapport
+ *   node lab/cli.js analyze <fichier>  analyse une capture JSON ou une session JSONL
+ *   node lab/cli.js inspect <fichier>  liste les types de messages d'une capture
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { analyze, summarize } from '../analyzer/index.js';
+import { analyze, summarize, getAdapter, looksLikeJsonl, parseJsonl, captureFromRecords, inspectCapture, formatInspection } from '../analyzer/index.js';
 import { simulate } from './simulator.js';
 import { PROFILES } from './profiles.js';
 
 const args = process.argv.slice(2);
 
-if (args[0] === 'analyze') {
-  if (!args[1]) { console.error('Usage : node lab/cli.js analyze <capture.json>'); process.exit(2); }
-  console.log(summarize(analyze(JSON.parse(readFileSync(args[1], 'utf8')))));
+function load(path) {
+  const text = readFileSync(path, 'utf8');
+  if (!looksLikeJsonl(text)) { const capture = JSON.parse(text); return { capture, adapter: getAdapter(capture.meta?.adapter) }; }
+  const records = parseJsonl(text);
+  const adapter = getAdapter(records.find((r) => r.type === 'meta')?.adapter);
+  return { capture: captureFromRecords(records, { adapter }), adapter };
+}
+
+if (args[0] === 'analyze' || args[0] === 'inspect') {
+  if (!args[1]) { console.error(`Usage : node lab/cli.js ${args[0]} <fichier>`); process.exit(2); }
+  const { capture, adapter } = load(args[1]);
+  console.log(args[0] === 'inspect' ? formatInspection(inspectCapture(capture, { adapter })) : summarize(analyze(capture, { adapter })));
 } else {
   const write = args.includes('--write');
   const dir = fileURLToPath(new URL('./fixtures/', import.meta.url));

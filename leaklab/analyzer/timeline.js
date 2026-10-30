@@ -17,6 +17,7 @@
 export const PHASES = ['pre_question', 'pre_answer', 'post_answer', 'post_correction'];
 
 const SLOTS = {
+  question_ready: ['seqReady', 'tReady'], // annonce de question (« get ready ») : ouvre la fenêtre de la question
   question_start: ['seqQuestion', 'tQuestion'],
   answer_sent: ['seqAnswer', 'tAnswer'],
   answer_ack: ['seqAck', 'tAck'],
@@ -36,6 +37,7 @@ export function normalizeFrames(frames) {
 }
 
 export function buildTimeline(frames, marks, adapter) {
+  adapter.reset?.(); // les adaptateurs à état (question courante) repartent de zéro
   const byQ = new Map();
   const entry = (q) => byQ.get(q) ?? byQ.set(q, { q }).get(q);
 
@@ -55,13 +57,15 @@ export function buildTimeline(frames, marks, adapter) {
 
   const questions = [...byQ.values()].filter((e) => e.seqQuestion !== undefined).sort((a, b) => a.seqQuestion - b.seqQuestion);
 
+  const byBegin = [...questions].sort((a, b) => (a.seqReady ?? a.seqQuestion) - (b.seqReady ?? b.seqQuestion));
+
   return {
     questions,
     get: (q) => byQ.get(q),
     /** Question en cours à la trame `seq` (la dernière démarrée), ou null. */
     contextQ(seq) {
       let current = null;
-      for (const e of questions) { if (e.seqQuestion <= seq) current = e.q; else break; }
+      for (const e of byBegin) { if ((e.seqReady ?? e.seqQuestion) <= seq) current = e.q; else break; }
       return current;
     },
     /** Phase d'une information disponible à la trame `seq` pour la question `q`. */

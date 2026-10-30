@@ -14,7 +14,7 @@
     <label>Graine <input id="seed" type="number" value="1" min="1" step="1"></label>
     <label>Précision du joueur <input id="accuracy" type="range" min="0" max="1" step="0.05" value="0.6"><output id="accuracyOut">60 %</output></label>
     <button type="submit">Lancer</button>
-    <label class="file">Charger une capture… <input id="file" type="file" accept="application/json"></label>
+    <label class="file">Charger une capture… <input id="file" type="file" accept=".json,.jsonl,application/json"></label>
   </form>
 </header>
 <main>
@@ -33,6 +33,6 @@
     <div id="frames" class="frames"><p class="muted">Cliquez sur une voie de la chronologie.</p></div>
   </section>
 </main>
-<script type="module" src="/ui/app.js"></script>
+<script type="module" src="/ui/main-server.js"></script>
 </body>
 </html>

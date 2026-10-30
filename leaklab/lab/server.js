@@ -8,7 +8,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { analyze } from '../analyzer/index.js';
+import { analyze, getAdapter, looksLikeJsonl, parseJsonl, captureFromRecords } from '../analyzer/index.js';
 import { simulate } from './simulator.js';
 import { PROFILES, profileList } from './profiles.js';
 
@@ -47,9 +47,15 @@ export function createLabServer() {
         return json(res, 200, { profile: profileList().find((p) => p.id === profile), capture, result: analyze(capture) });
       }
       if (url.pathname === '/api/analyze' && req.method === 'POST') {
-        const capture = JSON.parse(await readBody(req));
-        if (!Array.isArray(capture.frames) || !Array.isArray(capture.groundTruth)) return json(res, 400, { error: 'Capture invalide : frames[] et groundTruth[] requis.' });
-        return json(res, 200, { capture, result: analyze(capture) });
+        const text = await readBody(req);
+        let capture;
+        if (looksLikeJsonl(text)) {
+          const records = parseJsonl(text);
+          const adapter = getAdapter(records.find((r) => r.type === 'meta')?.adapter);
+          capture = captureFromRecords(records, { adapter });
+        } else capture = JSON.parse(text);
+        if (!Array.isArray(capture.frames) || !Array.isArray(capture.groundTruth) || !capture.groundTruth.length) return json(res, 400, { error: 'Capture invalide : frames[] et une clé de réponses (groundTruth[]) sont requis.' });
+        return json(res, 200, { capture, result: analyze(capture, { adapter: getAdapter(capture.meta?.adapter) }) });
       }
       // Fichiers statiques : interface uniquement (ui/), sans sortie du dossier.
       const rel = url.pathname === '/' ? '/ui/index.html' : url.pathname;

@@ -138,7 +138,7 @@ test('précision : les durées mesurées correspondent aux horodatages de la cap
   assert.equal(hit.leadToAnswerMs, Math.round((t0.tAnswer - t0.tQuestion) * 10) / 10);
 });
 
-test('l’analyseur n’importe aucune API Node (réutilisable dans l’extension)', async () => {
+test('l’analyseur n’importe aucune API Node (réutilisable dans un navigateur)', async () => {
   const { readdirSync, readFileSync, statSync } = await import('node:fs');
   const { join } = await import('node:path');
   const walk = (d) => readdirSync(d).flatMap((n) => (statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : [join(d, n)]));

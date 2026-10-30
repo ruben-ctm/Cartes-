@@ -1,4 +1,4 @@
-/** Rapport texte lisible d'un résultat d'analyse (CLI, journaux, popup de l'extension). */
+/** Rapport texte lisible d'un résultat d'analyse (CLI, journaux). */
 
 const PHASE_LABELS = {
   pre_question: 'avant la question',
@@ -11,6 +11,7 @@ const fmtMs = (x) => (x === null || x === undefined ? '—' : `${x >= 0 ? '+' : 
 
 export function summarize(result) {
   const lines = [`Verdict : ${result.verdictLabel} [${result.verdict}]`, `Questions : ${result.questionsAnalyzed} · trames entrantes : ${result.framesAnalyzed}`];
+  for (const w of result.warnings ?? []) lines.push(`⚠ ${w}`);
   if (!result.candidates.length) lines.push('Aucun champ ne désigne la bonne réponse.');
   for (const c of result.candidates) {
     lines.push(

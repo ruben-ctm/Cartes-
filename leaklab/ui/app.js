@@ -1,6 +1,6 @@
-// Interface de visualisation de la chronologie. Lit { capture, result } fournis par l'API.
+// Rendu de la chronologie : main-server.js fournit { capture, result } à show().
 
-const $ = (id) => document.getElementById(id);
+export const $ = (id) => document.getElementById(id);
 const SVG = 'http://www.w3.org/2000/svg';
 const PHASES = {
   pre_question: ['Avant la question', 'var(--pre-q)'],
@@ -21,7 +21,7 @@ const el = (name, attrs = {}, text) => {
   return e;
 };
 const fmt = (ms) => `${ms >= 0 ? '+' : '−'}${(Math.abs(ms) / 1000).toFixed(2)} s`;
-const html = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+export const html = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
 
 function normalize(frames) {
   return frames
@@ -30,14 +30,12 @@ function normalize(frames) {
     .map((f, seq) => ({ ...f, seq, id: f.id ?? `f${seq}` }));
 }
 
-async function load(url, options) {
-  const res = await fetch(url, options);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? res.statusText);
-  return data;
+export function showError(message) {
+  $('verdict').className = 'verdict warn';
+  $('verdict').innerHTML = `<span class="err">${html(message)}</span>`;
 }
 
-function show({ capture, result, profile }) {
+export function show({ capture, result, profile }) {
   const q0 = result.timeline[0]?.q ?? null;
   state = { capture, result, profile, frames: normalize(capture.frames), selectedQ: q0, selectedCand: null };
   renderVerdict(); renderLegend(); renderTimeline(); renderCandidates(); renderFrames();
@@ -51,7 +49,8 @@ function renderVerdict() {
   box.innerHTML = `<strong>${html(result.verdictLabel)}</strong>
     <span class="meta">${result.questionsAnalyzed} questions · ${result.framesAnalyzed} trames entrantes · ${early} champ(s) précoce(s)
     ${profile ? ` · profil ${profile.id} — ${html(profile.title)}` : ''}</span>
-    ${profile ? `<span class="meta">${html(profile.description)}</span>` : ''}`;
+    ${profile ? `<span class="meta">${html(profile.description)}</span>` : ''}
+    ${(result.warnings ?? []).map((w) => `<span class="meta err">⚠ ${html(w)}</span>`).join('')}`;
 }
 
 function renderLegend() {
@@ -65,6 +64,7 @@ function renderLegend() {
 function renderTimeline() {
   const { result, selectedQ, selectedCand } = state;
   const rows = result.timeline;
+  if (!rows.length) { $('timeline').innerHTML = '<p class="muted">Aucune question reconnue.</p>'; return; }
   const maxT = Math.max(...rows.map((e) => (e.tResult ?? e.tTimeUp ?? e.tQuestion) - e.tQuestion)) + 800;
   const W = 1100, left = 54, right = 16, top = 24, lane = 26;
   const H = top + rows.length * lane + 22;
@@ -158,7 +158,7 @@ function pretty(f) {
 function renderFrames() {
   const { result, frames, selectedQ, selectedCand } = state;
   const e = result.timeline.find((x) => x.q === selectedQ);
-  if (!e) return;
+  if (!e) { $('frames').innerHTML = '<p class="muted">Aucune question à inspecter.</p>'; $('inspQ').textContent = ''; return; }
   $('inspQ').textContent = `Q${e.q + 1}`;
   const hitsByFrame = new Map();
   result.candidates.forEach((c, i) => c.perQuestion.filter((h) => h.q === e.q).forEach((h) => {
@@ -174,27 +174,3 @@ function renderFrames() {
     return `<details${hits.length ? ' open' : ''}><summary><span class="t">${fmt(rel)}</span><span>${f.dir === 'in' ? '⬇ reçu' : '⬆ envoyé'}</span><span>${html(frameLabel(f))}</span>${badges}</summary><pre>${html(pretty(f))}</pre></details>`;
   }).join('');
 }
-
-async function run() {
-  $('verdict').textContent = 'Simulation et analyse…';
-  const q = new URLSearchParams({ profile: $('profile').value, seed: $('seed').value, accuracy: $('accuracy').value });
-  try { show(await load(`/api/run?${q}`)); } catch (err) { $('verdict').innerHTML = `<span class="err">${html(err.message)}</span>`; }
-}
-
-async function init() {
-  const profiles = await load('/api/profiles');
-  $('profile').innerHTML = profiles.map((p) => `<option value="${p.id}">${p.id} — ${html(p.title)}</option>`).join('');
-  $('controls').addEventListener('submit', (ev) => { ev.preventDefault(); run(); });
-  $('profile').addEventListener('change', run);
-  $('accuracy').addEventListener('input', () => { $('accuracyOut').textContent = `${Math.round($('accuracy').value * 100)} %`; });
-  $('accuracy').addEventListener('change', run);
-  $('file').addEventListener('change', async (ev) => {
-    const file = ev.target.files[0];
-    if (!file) return;
-    try { show(await load('/api/analyze', { method: 'POST', body: await file.text() })); } catch (err) { $('verdict').innerHTML = `<span class="err">${html(err.message)}</span>`; }
-  });
-  const initial = new URLSearchParams(location.search).get('profile');
-  if (initial) $('profile').value = initial;
-  run();
-}
-init();

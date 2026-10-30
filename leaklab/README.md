@@ -65,8 +65,8 @@ test/                     node:test
   (parties que vous créez vous-mêmes).
 - Résultat statistique : ≥ 6 questions requises ; la précision du joueur influe sur le contrôle d'écho.
 
-## Intégration dans l'extension (lot suivant)
+## Sessions JSONL
 
-`analyze(capture, { adapter })` ne dépend ni de Node ni du DOM : le hook MAIN world alimentera
-`frames[]` (`{ t, dir, kind, data }`) et `marks[]` (`dom_question_rendered`), la clé de
-réponses venant de l'hôte du test.
+`analyzer/session.js` lit et écrit des sessions JSONL (`meta`, `key`, `frame`, `mark`) ; `node lab/cli.js analyze|inspect <fichier>`
+et l'interface (« Charger une capture… ») les acceptent. Cela couvre les captures de **services que vous possédez ou
+êtes autorisés à auditer** : il faut alors écrire un adaptateur de protocole (`analyzer/adapters/`) et fournir la clé de réponses.

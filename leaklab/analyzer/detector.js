@@ -177,6 +177,15 @@ export function analyze(capture, options = {}) {
     .sort((a, b) => PHASES.indexOf(a.worstPhase) - PHASES.indexOf(b.worstPhase) || a.medianDtFromQuestionMs - b.medianDtFromQuestionMs);
 
   const questionsObserved = timeline.questions.filter((e) => truth.byQ.has(e.q)).length;
+  const withEvent = (slot) => timeline.questions.filter((e) => e[slot] !== undefined).length;
+  const warnings = [];
+  if (!questionsObserved) warnings.push('Aucun début de question reconnu : l’adaptateur de protocole ne reconnaît pas ce flux (voir `inspect`).');
+  else {
+    if (!withEvent('seqResult')) warnings.push('Aucun événement de résultat reconnu : les phases « après correction » ne peuvent pas être distinguées.');
+    if (!withEvent('seqAnswer')) warnings.push('Aucune réponse du joueur reconnue : les phases « après réponse » ne peuvent pas être distinguées et le contrôle d’écho est inactif.');
+    const missingKey = timeline.questions.filter((e) => !truth.byQ.has(e.q)).length;
+    if (missingKey) warnings.push(`${missingKey} question(s) observée(s) sans clé de réponses : ignorées.`);
+  }
   const verdict = verdictFor(candidates, questionsObserved, opts);
 
   return {
@@ -189,5 +198,6 @@ export function analyze(capture, options = {}) {
     timeline: timeline.questions.map(({ q, ...rest }) => ({ q, ...Object.fromEntries(Object.entries(rest).map(([k, v]) => [k, k.startsWith('t') ? round(v) : v])) })),
     candidates,
     ignored,
+    warnings,
   };
 }
