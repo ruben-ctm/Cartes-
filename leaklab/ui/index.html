@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaklab · chronologie</title>
+<link rel="stylesheet" href="/ui/style.css">
+</head>
+<body>
+<header>
+  <h1>Leaklab <span>chronologie des divulgations</span></h1>
+  <form id="controls">
+    <label>Profil <select id="profile"></select></label>
+    <label>Graine <input id="seed" type="number" value="1" min="1" step="1"></label>
+    <label>Précision du joueur <input id="accuracy" type="range" min="0" max="1" step="0.05" value="0.6"><output id="accuracyOut">60 %</output></label>
+    <button type="submit">Lancer</button>
+    <label class="file">Charger une capture… <input id="file" type="file" accept="application/json"></label>
+  </form>
+</header>
+<main>
+  <section id="verdict" class="verdict" aria-live="polite"></section>
+  <section>
+    <h2>Chronologie par question <small id="axisHint"></small></h2>
+    <div id="legend" class="legend"></div>
+    <div id="timeline"></div>
+  </section>
+  <section>
+    <h2>Champs corrélés à la bonne réponse</h2>
+    <div id="candidates"></div>
+  </section>
+  <section id="inspector">
+    <h2>Trames de la question <span id="inspQ"></span></h2>
+    <div id="frames" class="frames"><p class="muted">Cliquez sur une voie de la chronologie.</p></div>
+  </section>
+</main>
+<script type="module" src="/ui/app.js"></script>
+</body>
+</html>

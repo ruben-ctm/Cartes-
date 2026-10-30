@@ -1,0 +1,12 @@
+{
+  "name": "leaklab",
+  "version": "0.1.0",
+  "description": "Banc d'essai de détection de fuites d'information (réponse connue avant validation) sur protocole de quiz simulé",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "lab": "node lab/server.js",
+    "report": "node lab/cli.js"
+  }
+}
