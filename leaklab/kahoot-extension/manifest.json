@@ -1,1 +1,18 @@
-{"manifest_version":3,"name":"Leaklab Capture Analyzer","version":"0.1.0","description":"Analyse locale de fichiers HAR exportés manuellement.","action":{"default_popup":"popup.html","default_title":"Leaklab Capture Analyzer"}}
+{
+  "manifest_version": 3,
+  "name": "Leaklab Live WebSocket Audit",
+  "version": "0.2.0",
+  "description": "Audit local et horodaté des trames WebSocket sur une session Kahoot de test.",
+  "permissions": [
+    "debugger",
+    "activeTab",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Leaklab Live Audit"
+  }
+}
