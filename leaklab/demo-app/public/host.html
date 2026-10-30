@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaklab Quiz · hôte</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header><h1>Leaklab Quiz</h1><span class="tag">mode hôte — application de test, indépendante de Kahoot</span></header>
+<main>
+  <section id="setup">
+    <h2>Créer une partie</h2>
+    <div class="row">
+      <div><label>Scénario</label><select id="scenario"></select></div>
+      <div><label>Nombre de questions</label><input id="count" type="number" value="8" min="3" max="20"></div>
+      <div><label>Temps par question (s)</label><input id="time" type="number" value="15" min="2" max="60"></div>
+      <div><label>Graine (optionnel)</label><input id="seed" type="number" placeholder="aléatoire"></div>
+    </div>
+    <p id="scenarioDesc" class="hint"></p>
+    <button id="createBtn">Créer la partie</button>
+    <p id="setupErr" class="err"></p>
+  </section>
+
+  <section id="lobby" hidden>
+    <h2>Partie <span class="code" id="roomCode"></span></h2>
+    <p class="muted">Scénario : <strong id="roomScenario"></strong> — donnez le code ci-dessus aux joueurs sur <code id="playerUrl"></code>.</p>
+    <h3>Joueurs connectés</h3>
+    <ul class="players" id="players"><li class="muted">En attente…</li></ul>
+    <button id="startBtn" disabled>Démarrer la partie</button>
+  </section>
+
+  <section id="game" hidden>
+    <h2>Question <span id="qIndex"></span> / <span id="qTotal"></span></h2>
+    <p id="qState" class="status"></p>
+    <table id="standings"></table>
+  </section>
+
+  <section id="over" hidden>
+    <h2>Partie terminée</h2>
+    <table id="finalStandings"></table>
+    <button class="secondary" onclick="location.reload()">Nouvelle partie</button>
+  </section>
+</main>
+<script type="module" src="/host.js"></script>
+</body>
+</html>

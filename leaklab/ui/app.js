@@ -35,9 +35,21 @@ export function showError(message) {
   $('verdict').innerHTML = `<span class="err">${html(message)}</span>`;
 }
 
-export function show({ capture, result, profile }) {
+/**
+ * Affiche une analyse. `keepSelection: true` (capture en direct, sessions de l'extension)
+ * conserve la question et le champ actuellement inspectés plutôt que de revenir à Q1 à
+ * chaque nouvelle trame ; sans cette option (banc d'essai, nouvelle capture chargée), la
+ * sélection repart de la première question.
+ */
+export function show({ capture, result, profile }, { keepSelection = false } = {}) {
+  const prev = state;
   const q0 = result.timeline[0]?.q ?? null;
-  state = { capture, result, profile, frames: normalize(capture.frames), selectedQ: q0, selectedCand: null };
+  const stillThere = keepSelection && prev && result.timeline.some((e) => e.q === prev.selectedQ);
+  state = {
+    capture, result, profile, frames: normalize(capture.frames),
+    selectedQ: stillThere ? prev.selectedQ : q0,
+    selectedCand: keepSelection && prev && result.candidates.some((c) => c.id === prev.selectedCand) ? prev.selectedCand : null,
+  };
   renderVerdict(); renderLegend(); renderTimeline(); renderCandidates(); renderFrames();
 }
 
@@ -143,7 +155,11 @@ function renderCandidates() {
 
 function frameLabel(f) {
   if (f.kind === 'http') return `${f.method ?? 'GET'} ${f.url} → ${f.status ?? ''}`;
-  try { const m = JSON.parse(f.data)[0]; return `${m.channel} · ${m.data.type}`; } catch { return 'trame'; }
+  try {
+    const parsed = JSON.parse(f.data);
+    const m = Array.isArray(parsed) ? parsed[0] : parsed; // tableau Bayeux (mock-cometd) ou objet direct (demo-app)
+    return m?.channel ? `${m.channel} · ${m.data?.type}` : (m?.type ?? 'trame');
+  } catch { return 'trame'; }
 }
 
 function pretty(f) {

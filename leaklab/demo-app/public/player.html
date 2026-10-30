@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaklab Quiz · joueur</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header><h1>Leaklab Quiz</h1><span class="tag">mode joueur</span></header>
+<main>
+  <section id="join">
+    <h2>Rejoindre une partie</h2>
+    <div class="row">
+      <div><label>Code de la partie</label><input id="code" maxlength="5" style="text-transform:uppercase" autocomplete="off"></div>
+      <div><label>Votre nom</label><input id="name" maxlength="24" autocomplete="off"></div>
+    </div>
+    <button id="joinBtn">Rejoindre</button>
+    <p id="joinErr" class="err"></p>
+    <p class="hint">L’interface n’affiche jamais la bonne réponse avant le résultat officiel — même si les données reçues
+      en contiennent une trace, ce que seule l’extension d’observation (hors de cette page) peut révéler.</p>
+  </section>
+
+  <section id="lobby" hidden>
+    <h2>Partie <span class="code" id="roomCode"></span></h2>
+    <p class="muted" id="waitMsg">En attente du lancement par l’hôte…</p>
+  </section>
+
+  <section id="question" hidden>
+    <p class="status">Question <span id="qIndex"></span> / <span id="qTotal"></span></p>
+    <h2 id="qText"></h2>
+    <div class="bar"><i id="qBar" style="width:100%"></i></div>
+    <div class="choices" id="choices"></div>
+    <p id="qStatus" class="status"></p>
+  </section>
+
+  <section id="over" hidden>
+    <h2>Partie terminée</h2>
+    <p>Votre score final : <strong id="finalScore"></strong></p>
+    <table id="finalStandings"></table>
+  </section>
+</main>
+<script type="module" src="/player.js"></script>
+</body>
+</html>

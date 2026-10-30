@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Leaklab Quiz Watcher",
+  "version": "0.1.0",
+  "description": "Capture passive (lecture seule) du trafic de l'application de test leaklab-demo-app sur 127.0.0.1, et tableau de bord en direct des fuites détectées. Sans rapport avec Kahoot ni aucun service tiers — scénarios conçus par nous pour la démonstration.",
+  "permissions": ["storage", "unlimitedStorage"],
+  "host_permissions": ["http://127.0.0.1/*"],
+  "background": { "service_worker": "src/background.js", "type": "module" },
+  "action": { "default_title": "Ouvrir le tableau de bord Leaklab" },
+  "content_scripts": [
+    { "matches": ["http://127.0.0.1/*"], "js": ["src/hook.js"], "run_at": "document_start", "world": "MAIN" },
+    { "matches": ["http://127.0.0.1/*"], "js": ["src/bridge.js"], "run_at": "document_start" }
+  ]
+}

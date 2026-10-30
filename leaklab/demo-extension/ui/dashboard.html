@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaklab Quiz Watcher</title>
+<link rel="stylesheet" href="../vendor/ui/style.css">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<header>
+  <h1>Leaklab <span>tableau de bord — capture en direct</span></h1>
+  <form id="controls" class="liveControls">
+    <label>Session <select id="session"></select></label>
+    <span id="liveStatus" class="live">● en direct</span>
+    <label>Code de la partie <input id="roomCode" placeholder="ex. AB3K9" maxlength="5" style="text-transform:uppercase; width:7ch"></label>
+    <button type="button" id="keyBtn">Récupérer la clé de réponses</button>
+    <button type="button" id="exportBtn" class="secondary">Exporter en JSONL</button>
+    <button type="button" id="deleteBtn" class="secondary">Supprimer la session</button>
+  </form>
+  <p id="keyMsg" class="hint"></p>
+</header>
+<main>
+  <section id="verdict" class="verdict" aria-live="polite">
+    <p class="muted">Ouvrez <code>player.html</code> de l’application de test dans un autre onglet pour commencer une capture.</p>
+  </section>
+  <section>
+    <h2>Chronologie par question <small id="axisHint"></small></h2>
+    <div id="legend" class="legend"></div>
+    <div id="timeline"></div>
+  </section>
+  <section>
+    <h2>Champs corrélés à la bonne réponse</h2>
+    <div id="candidates"></div>
+  </section>
+  <section id="inspector">
+    <h2>Trames de la question <span id="inspQ"></span></h2>
+    <div id="frames" class="frames"><p class="muted">Cliquez sur une voie de la chronologie.</p></div>
+  </section>
+</main>
+<script type="module" src="main-ext.js"></script>
+</body>
+</html>

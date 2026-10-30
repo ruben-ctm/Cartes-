@@ -8,5 +8,11 @@
     "test": "node --test \"test/*.test.js\"",
     "lab": "node lab/server.js",
     "report": "node lab/cli.js"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
   }
 }

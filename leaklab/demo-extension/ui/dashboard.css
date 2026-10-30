@@ -1,0 +1,6 @@
+/* Compléments propres au tableau de bord de l'extension (en plus de vendor/ui/style.css). */
+.liveControls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.live { color: var(--ok); font-weight: 600; } .live.idle { color: var(--muted); }
+button.secondary { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 14px; cursor: pointer; }
+header .hint { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+header .hint.err { color: var(--leak); }

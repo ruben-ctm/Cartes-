@@ -1,0 +1,14 @@
+{
+  "name": "leaklab-demo-app",
+  "version": "0.1.0",
+  "description": "Application de quiz de test (serveur WebSocket contrôlé) pour la démonstration Leaklab. Indépendante de Kahoot.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "host-bot": "node host-bot.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

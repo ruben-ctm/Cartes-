@@ -1,0 +1,52 @@
+:root {
+  --bg: #f6f7f9; --panel: #fff; --text: #1d2330; --muted: #667085; --line: #d9dde5;
+  --pre-q: #e5defa; --pre-a: #fde8c8; --post-a: #d6e7fb; --post-c: #d8f0de;
+  --leak: #d92d20; --ok: #12805c; --warn: #b54708; --info: #175cd3;
+  --c0: #d92d20; --c1: #7a3bd1; --c2: #0e7490; --c3: #b45309; --c4: #be185d;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12151c; --panel: #1b202b; --text: #e8ebf2; --muted: #98a2b3; --line: #343b4a;
+    --pre-q: #2d2650; --pre-a: #4a3314; --post-a: #1b3454; --post-c: #1a3d2a;
+    --leak: #f97066; --ok: #47cd89; --warn: #fdb022; --info: #84adff;
+    --c0: #f97066; --c1: #b692f6; --c2: #5ed0e3; --c3: #fbbf24; --c4: #f472b6;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, sans-serif; }
+header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 12px 16px; }
+h1 { margin: 0 0 8px; font-size: 18px; } h1 span { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 8px; }
+h2 { font-size: 14px; margin: 0 0 8px; } h2 small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+main { padding: 16px; max-width: 1180px; margin: 0 auto; display: grid; gap: 16px; }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; min-width: 0; }
+form { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; }
+label { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
+select, input, button { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+input[type=range] { padding: 0; width: 110px; } input[type=number] { width: 70px; }
+button { background: var(--info); color: #fff; border-color: transparent; cursor: pointer; padding: 5px 14px; }
+.file input { display: none; } .file { cursor: pointer; text-decoration: underline; }
+.verdict { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; border-left: 6px solid var(--muted); }
+.verdict strong { font-size: 16px; } .verdict .meta { color: var(--muted); }
+.verdict.leak { border-left-color: var(--leak); } .verdict.ok { border-left-color: var(--ok); }
+.verdict.warn { border-left-color: var(--warn); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 8px; color: var(--muted); font-size: 12px; }
+.legend i { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin-right: 4px; border-radius: 2px; }
+#timeline { overflow-x: auto; } svg text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+svg .lane { cursor: pointer; } svg .lane:hover .hit, svg .lane.sel .hit { stroke: var(--text); stroke-width: 1.5; }
+svg .lane.sel text.q { fill: var(--text); font-weight: 600; }
+svg .dim { opacity: .18; }
+table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; } tr.cand { cursor: pointer; } tr.cand:hover, tr.cand.sel { background: var(--bg); }
+code { font: 12px ui-monospace, monospace; word-break: break-all; }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; color: #1d2330; }
+.b-pre_question { background: var(--pre-q); } .b-pre_answer { background: var(--pre-a); }
+.b-post_answer { background: var(--post-a); } .b-post_correction { background: var(--post-c); }
+.dot { display: inline-block; width: 10px; height: 10px; transform: rotate(45deg); margin-right: 6px; }
+.muted { color: var(--muted); } .frames details { border-bottom: 1px solid var(--line); padding: 4px 0; }
+.frames summary { cursor: pointer; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.frames pre { margin: 6px 0 4px; padding: 8px; background: var(--bg); border-radius: 6px; overflow: auto; max-height: 240px; font-size: 12px; }
+.frames .hitmark { color: var(--leak); font-weight: 600; font-size: 12px; } .frames .t { width: 82px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.frames mark { background: color-mix(in srgb, var(--leak) 28%, transparent); color: inherit; }
+.err { color: var(--leak); }
+@media (max-width: 640px) { main { padding: 10px; } }
+
