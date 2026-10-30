@@ -1,18 +1,21 @@
 {
   "manifest_version": 3,
   "name": "Leaklab Live WebSocket Audit",
-  "version": "0.3.0",
-  "description": "Capture locale des WebSockets et affichage des champs de correction détectés pour un test supervisé.",
+  "version": "0.4.0",
+  "description": "Panneau latéral persistant pour auditer localement les trames WebSocket d'une session de test.",
   "permissions": [
     "debugger",
     "activeTab",
-    "storage"
+    "storage",
+    "sidePanel"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup.html",
-    "default_title": "Leaklab Live Audit"
+    "default_title": "Ouvrir Leaklab"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
   }
 }
